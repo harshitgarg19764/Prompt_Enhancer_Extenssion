@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Enhancer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+    <div class="popup-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-icon">✨</div>
+            <div class="header-text">
+                <h1>Prompt Enhancer</h1>
+                <p class="subtitle">Supercharge your AI prompts</p>
+            </div>
+            <div class="status-dot" id="statusDot" title="Disconnected"></div>
+        </div>
+
+        <!-- Master Toggle -->
+        <div class="setting-row toggle-row">
+            <div class="setting-label">
+                <span class="setting-icon">⚡</span>
+                <span>Auto Enhance</span>
+            </div>
+            <label class="toggle">
+                <input type="checkbox" id="enabledToggle" checked>
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+
+
+
+        <!-- API Key -->
+        <div class="setting-group">
+            <label class="setting-group-label">API Key</label>
+            <div class="api-key-wrapper">
+                <input type="password" id="apiKeyInput" placeholder="Enter your API key..." autocomplete="off"
+                    spellcheck="false">
+                <button class="eye-btn" id="eyeBtn" title="Show/Hide">
+                    <span id="eyeIcon">👁️</span>
+                </button>
+            </div>
+            <p class="hint">
+                <a href="https://openrouter.ai/keys" target="_blank">Get an OpenRouter API key →</a>
+            </p>
+        </div>
+
+        <!-- Enhancement Style -->
+        <div class="setting-group">
+            <label class="setting-group-label">Enhancement Style</label>
+            <div class="style-grid">
+                <button class="style-btn active" data-style="professional">
+                    <span class="style-emoji">🎯</span>
+                    <span class="style-name">Professional</span>
+                </button>
+                <button class="style-btn" data-style="creative">
+                    <span class="style-emoji">🎨</span>
+                    <span class="style-name">Creative</span>
+                </button>
+                <button class="style-btn" data-style="technical">
+                    <span class="style-emoji">⚙️</span>
+                    <span class="style-name">Technical</span>
+                </button>
+                <button class="style-btn" data-style="concise">
+                    <span class="style-emoji">✂️</span>
+                    <span class="style-name">Concise</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <button class="save-btn" id="saveBtn">
+            <span class="save-text">Save Settings</span>
+            <span class="save-check" id="saveCheck">✓ Saved</span>
+        </button>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span>Ctrl+Shift+E to enhance without sending</span>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+
+</html>
