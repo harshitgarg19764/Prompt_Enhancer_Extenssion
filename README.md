@@ -2,6 +2,10 @@
 
 > A silent AI agent that lives in your browser. It automatically intercepts, enhances, and submits improved AI prompts — no extra steps needed.
 
+**✨ New in v1.0:**
+- **Context-Aware:** Scrapes the last few messages of your conversation on supported sites so the rewritten prompt understands the ongoing context.
+- **Strict Prompt Rewriter:** The engine is specifically trained to *never* answer your prompt directly, but to rewrite it into a highly optimized instruction for the receiving AI.
+
 ---
 
 ## 🚀 Installation
@@ -49,6 +53,8 @@ Use the **Auto Enhance** toggle in the popup to enable/disable auto-enhancement.
 | ChatGPT | `chatgpt.com`, `chat.openai.com` |
 | Google Gemini | `gemini.google.com` |
 | Claude | `claude.ai` |
+| Perplexity AI | `perplexity.ai` |
+| k2Think | `k2think.ai` |
 | Microsoft Copilot | `copilot.microsoft.com` |
 | DeepSeek | `chat.deepseek.com` |
 | Poe | `poe.com` |
@@ -69,7 +75,7 @@ Use the **Auto Enhance** toggle in the popup to enable/disable auto-enhancement.
 ## 🧠 Smart Skip Logic
 
 The extension automatically skips enhancement when:
-- Input is **too short** (< 5 words like "hi" or "thanks")
+- Input is **too short** (< 3 words like "hi" or "thanks")
 - Prompt was **already enhanced**
 - Extension is **disabled** via the toggle
 - **No API key** is configured

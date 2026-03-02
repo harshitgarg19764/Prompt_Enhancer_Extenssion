@@ -19,6 +19,13 @@ const SITE_CONFIGS = {
             document.execCommand('delete', false, null);
             document.execCommand('insertText', false, text);
             inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+        },
+        getContext() {
+            const turns = document.querySelectorAll('[data-message-author-role]');
+            return Array.from(turns).slice(-6).map(el => {
+                const role = el.getAttribute('data-message-author-role') === 'user' ? 'User' : 'Assistant';
+                return `${role}: ${el.innerText.trim()}`;
+            }).join('\n');
         }
     },
 
@@ -33,16 +40,13 @@ const SITE_CONFIGS = {
         },
         setText(inputEl, text) {
             inputEl.focus();
-            // Select all content via keyboard simulation
             const selectAll = new KeyboardEvent('keydown', { key: 'a', code: 'KeyA', ctrlKey: true, bubbles: true });
             inputEl.dispatchEvent(selectAll);
-            // Use native selection API
             const selection = window.getSelection();
             const range = document.createRange();
             range.selectNodeContents(inputEl);
             selection.removeAllRanges();
             selection.addRange(range);
-            // Use clipboard to paste (avoids Trusted Types)
             const dt = new DataTransfer();
             dt.setData('text/plain', text);
             const pasteEvent = new ClipboardEvent('paste', {
@@ -51,10 +55,8 @@ const SITE_CONFIGS = {
                 cancelable: true
             });
             inputEl.dispatchEvent(pasteEvent);
-            // Fallback: if paste didn't work, try setting textContent directly
             setTimeout(() => {
                 if (inputEl.innerText.trim() !== text.trim()) {
-                    // Clear and set via textContent (less likely to trigger TT)
                     while (inputEl.firstChild) {
                         inputEl.removeChild(inputEl.firstChild);
                     }
@@ -63,6 +65,13 @@ const SITE_CONFIGS = {
                     inputEl.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             }, 100);
+        },
+        getContext() {
+            const turns = document.querySelectorAll('.conversation-container .query-text, .conversation-container .response-container');
+            return Array.from(turns).slice(-6).map((el, i) => {
+                const role = i % 2 === 0 ? 'User' : 'Assistant';
+                return `${role}: ${el.innerText.trim()}`;
+            }).join('\n');
         }
     },
 
@@ -90,6 +99,13 @@ const SITE_CONFIGS = {
                 cancelable: true
             });
             inputEl.dispatchEvent(pasteEvent);
+        },
+        getContext() {
+            const turns = document.querySelectorAll('[data-testid="human-turn"], [data-testid="ai-turn"]');
+            return Array.from(turns).slice(-6).map(el => {
+                const role = el.getAttribute('data-testid') === 'human-turn' ? 'User' : 'Assistant';
+                return `${role}: ${el.innerText.trim()}`;
+            }).join('\n');
         }
     },
 
@@ -148,6 +164,83 @@ const SITE_CONFIGS = {
             nativeSetter.call(inputEl, text);
             inputEl.dispatchEvent(new Event('input', { bubbles: true }));
         }
+    },
+
+    // Perplexity AI
+    perplexity: {
+        hostPatterns: ['perplexity.ai'],
+        inputSelector: 'textarea[placeholder], [contenteditable="true"][role="textbox"]',
+        sendButtonSelector: 'button[aria-label="Submit"], button[type="submit"]',
+        isContentEditable: false,
+        getText(inputEl) {
+            return inputEl.tagName === 'TEXTAREA' ? inputEl.value.trim() : inputEl.innerText.trim();
+        },
+        setText(inputEl, text) {
+            inputEl.focus();
+            if (inputEl.tagName === 'TEXTAREA') {
+                const nativeSetter = Object.getOwnPropertyDescriptor(
+                    window.HTMLTextAreaElement.prototype, 'value'
+                ).set;
+                nativeSetter.call(inputEl, text);
+                inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                // contenteditable fallback
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(inputEl);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                const dt = new DataTransfer();
+                dt.setData('text/plain', text);
+                inputEl.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+            }
+        },
+        getContext() {
+            // Perplexity uses message bubbles with specific classes
+            const turns = document.querySelectorAll('.group\/conversation-turn, [class*="AnswerBody"]');
+            return Array.from(turns).slice(-6).map((el, i) => {
+                const role = i % 2 === 0 ? 'User' : 'Assistant';
+                return `${role}: ${el.innerText.trim().slice(0, 300)}`;
+            }).join('\n');
+        }
+    },
+
+    // k2Think (k2think.ai)
+    k2think: {
+        hostPatterns: ['k2think.ai'],
+        inputSelector: 'textarea, [contenteditable="true"]',
+        sendButtonSelector: 'button[type="submit"], button[aria-label="Send"]',
+        isContentEditable: false,
+        getText(inputEl) {
+            return inputEl.tagName === 'TEXTAREA' ? inputEl.value.trim() : inputEl.innerText.trim();
+        },
+        setText(inputEl, text) {
+            inputEl.focus();
+            if (inputEl.tagName === 'TEXTAREA') {
+                const nativeSetter = Object.getOwnPropertyDescriptor(
+                    window.HTMLTextAreaElement.prototype, 'value'
+                ).set;
+                nativeSetter.call(inputEl, text);
+                inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(inputEl);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                const dt = new DataTransfer();
+                dt.setData('text/plain', text);
+                inputEl.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+            }
+        },
+        getContext() {
+            // k2Think conversation turns
+            const turns = document.querySelectorAll('[class*="message"], [class*="chat-message"], [class*="turn"]');
+            return Array.from(turns).slice(-6).map((el, i) => {
+                const role = i % 2 === 0 ? 'User' : 'Assistant';
+                return `${role}: ${el.innerText.trim().slice(0, 300)}`;
+            }).join('\n');
+        }
     }
 };
 
@@ -176,4 +269,20 @@ function findInputElement(siteConfig) {
  */
 function findSendButton(siteConfig) {
     return document.querySelector(siteConfig.sendButtonSelector);
+}
+
+/**
+ * Scrape the last few conversation turns from the page for context.
+ * Returns a plain text summary or empty string if not available.
+ */
+function getConversationContext(siteConfig) {
+    try {
+        if (typeof siteConfig.getContext === 'function') {
+            const ctx = siteConfig.getContext();
+            return ctx ? ctx.slice(-2000) : ''; // limit size
+        }
+    } catch (e) {
+        console.warn('[Prompt Enhancer] Could not scrape context:', e);
+    }
+    return '';
 }

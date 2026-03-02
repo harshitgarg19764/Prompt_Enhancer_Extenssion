@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "Prompt Enhancer",
     "version": "1.0.0",
-    "description": "Silently enhances your AI prompts on ChatGPT, Gemini, Claude & more — automatically on submit or via Ctrl+Shift+E.",
+    "description": "Silently enhances your AI prompts on ChatGPT, Gemini, Claude, Perplexity, k2Think & more — automatically on submit or via Ctrl+Shift+E.",
     "permissions": [
         "storage",
         "activeTab"
@@ -35,7 +35,10 @@
                 "*://claude.ai/*",
                 "*://copilot.microsoft.com/*",
                 "*://chat.deepseek.com/*",
-                "*://poe.com/*"
+                "*://poe.com/*",
+                "*://perplexity.ai/*",
+                "*://www.perplexity.ai/*",
+                "*://k2think.ai/*"
             ],
             "js": [
                 "content/sites.js",

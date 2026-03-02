@@ -138,7 +138,7 @@
         showLoading(inputEl);
 
         try {
-            const enhanced = await requestEnhancement(originalText);
+            const enhanced = await requestEnhancement(originalText, getConversationContext(currentSite));
 
             console.log('[Prompt Enhancer] Original:', originalText.substring(0, 80));
             console.log('[Prompt Enhancer] Enhanced:', enhanced ? enhanced.substring(0, 80) : 'NULL');
@@ -191,7 +191,7 @@
         showLoading(inputEl);
 
         try {
-            const enhanced = await requestEnhancement(text);
+            const enhanced = await requestEnhancement(text, getConversationContext(currentSite));
 
             if (enhanced && enhanced !== text) {
                 currentSite.setText(inputEl, enhanced);
@@ -209,10 +209,10 @@
     }
 
     // ── API Communication ───────────────────────────────
-    function requestEnhancement(text) {
+    function requestEnhancement(text, context) {
         return new Promise((resolve, reject) => {
             chrome.runtime.sendMessage(
-                { action: 'enhance', prompt: text },
+                { action: 'enhance', prompt: text, context: context || '' },
                 (response) => {
                     if (chrome.runtime.lastError) {
                         reject(new Error(chrome.runtime.lastError.message));

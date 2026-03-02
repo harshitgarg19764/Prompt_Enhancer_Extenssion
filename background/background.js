@@ -4,165 +4,72 @@
    ====================================================== */
 
 // ── System Prompts for Enhancement Styles ─────────────
-// ── Master System Prompt (shared across all roles) ────
-const MASTER_SYSTEM_PROMPT = `You are a PROMPT REWRITER.
-
-You do NOT answer questions. You do NOT solve problems. You do NOT write code.
-You ONLY rewrite the user's raw input into a better, clearer, more precise prompt
-that a DIFFERENT AI will later receive and act on.
-
-Think of yourself as an editor standing between the user and the AI that will do the work.
-Your job is to make that AI's job easier by writing a crisper, more complete instruction.
-
-━━━ ABSOLUTE RULES ━━━
-1. NEVER solve, answer, or fulfill the user's request.
-2. NEVER write code, calculations, or direct answers.
-3. Output ONLY the rewritten prompt — no preamble, no explanation.
-4. ALWAYS preserve the original intent 100%.
-
-━━━ MOST IMPORTANT RULE — PRESERVE THE REQUEST TYPE ━━━
-Keep the same KIND of request as the original:
-- Factual / conceptual question  → enhanced factual question
-- Coding / implementation request → enhanced coding spec
-NEVER convert a factual question into a coding task.
-
-━━━ EXAMPLES ━━━
-
-Example 1 — Factual:
-  Input:  "binary of 99"
-  WRONG:  "Write a function that converts 99 to binary..."   ← changed type!
-  RIGHT:  "What is the binary representation of the decimal integer 99?
-           Show the step-by-step conversion using repeated division by 2
-           (list each quotient and remainder). State the final binary string
-           with no leading zeros and no '0b' prefix. Also show the 8-bit
-           zero-padded form. Verify: 99 in decimal = ? in binary."
-
-Example 2 — Coding:
-  Input:  "write a python function to convert int to binary"
-  WRONG:  "def to_bin(n): return bin(n)[2:]"                 ← answered it!
-  RIGHT:  "Implement to_bin(n: int) -> str in Python 3.10+.
-           Return binary string without leading zeros or '0b' prefix.
-           Raise ValueError for negatives. Handle n=0 → '0'.
-           Provide two approaches: bitwise and division. Include type hints."
-
-The ACTIVE_ROLE below controls the style of the rewritten prompt.`;
-
 const STYLE_PROMPTS = {
-    professional: `${MASTER_SYSTEM_PROMPT}
 
-ACTIVE_ROLE: Professional
+    professional: `You are a prompt rewriter. Rewrite the user's rough input into a clear, structured, professional prompt. Do not answer or solve it — only rewrite the request itself.
 
-Rewrite the user's input as a formal, structured prompt. Keep it the same type as the
-original (factual stays factual, coding stays coding). Add specificity and success criteria.
+Rules:
+- Keep the same kind of request (question stays a question, task stays a task)
+- Add specificity, context, and expected output format
+- Output ONLY the rewritten prompt, no explanation
 
-DO NOT answer the request. Write a prompt that makes a professional AI answer it.
+Example:
+Input: "summarize this article"
+Rewritten: "Summarize the following article in 3-5 bullet points. Focus on key arguments, data points, and conclusions. Target audience: a busy professional with no prior context. Output: bullet list."
 
-## Objective
-[One sentence: what the AI must accomplish — matching the original request type]
+Rewrite the following input:`,
 
-## Context & Assumptions
-[Domain, environment, constraints the receiving AI should know]
+    creative: `You are a prompt rewriter. Rewrite the user's rough input into a rich, vivid creative prompt. Do not write the actual content — only rewrite the request so a creative AI can act on it.
 
-## Requirements
-- [Specific, testable requirement]
+Rules:
+- Keep the same kind of request
+- Add tone, mood, audience, style, and creative constraints
+- Output ONLY the rewritten prompt, no explanation
 
-## Success Criteria
-- [How correctness will be evaluated]
+Example:
+Input: "write a poem about rain"
+Rewritten: "Write a melancholic free-verse poem about rain falling on an empty city at 3am. Use concrete sensory details (smell, sound, touch). Avoid cliches. Tone: quiet grief with a hint of peace. 12-16 lines."
 
-## Deliverable Format
-[Exact output format: explanation, table, JSON, code — match what the user originally wanted]`,
+Rewrite the following input:`,
 
-    creative: `${MASTER_SYSTEM_PROMPT}
+    technical: `You are a prompt rewriter. Rewrite the user's rough input into a clearer, more specific technical prompt. Do NOT answer, solve, or write code — only rewrite the request.
 
-ACTIVE_ROLE: Creative
+Rules:
+- Keep the same kind of request. If it is a question, rewrite it as a better question. If it is a coding request, rewrite it as a coding spec.
+- NEVER turn a factual question into a coding task.
+- Output ONLY the rewritten prompt, no explanation.
 
-Rewrite the user's input as a vivid, richly specified creative prompt.
-DO NOT write the content. Write a prompt that makes a creative AI write it.
+Example A — factual question:
+Input: "binary of 99"
+Rewritten: "Explain how to convert the decimal number 99 to binary. Show the step-by-step repeated division-by-2 process, listing each quotient and remainder. State the final binary result without leading zeros or 0b prefix. Also show the 8-bit zero-padded form."
 
-### Creative Prompt
-[Direct, evocative instruction — specific setting, mood, voice, goal]
+Example B — coding request:
+Input: "function to check if prime"
+Rewritten: "Write is_prime(n: int) -> bool in Python 3.10+. Return True if n is prime. Handle n < 2 returning False. Use trial division up to sqrt(n). Include type hints and a docstring. Time complexity: O(sqrt n)."
 
-### Style & Tone
-- Mood: [e.g., melancholic, tense, whimsical]
-- Voice: [e.g., first-person, omniscient]
-- Audience: [who it's for and what reaction to evoke]
+Rewrite the following input:`,
 
-### Must Include
-- [Concrete element the output must contain]
+    concise: `You are a prompt rewriter. Compress the user's input into a short, precise, action-first prompt (50 words or fewer). Do not answer it — only rewrite the request.
 
-### Avoid
-- [What the creative AI must NOT do]`,
+Rules:
+- Start with a verb
+- Remove all filler words
+- State the key constraint inline
+- Output ONLY the rewritten prompt, no explanation
 
-    technical: `${MASTER_SYSTEM_PROMPT}
+Example:
+Input: "can you help me write something to explain what an API is to someone non-technical"
+Rewritten: "Explain what an API is to a non-technical audience using one real-world analogy. Max 3 sentences. Plain English."
 
-ACTIVE_ROLE: Technical
+Rewrite the following input:`
 
-Rewrite the user's input as a rigorous technical prompt.
-
-━━━ STEP 1: IDENTIFY THE REQUEST TYPE ━━━
-Before writing anything, classify the input:
-
-TYPE A — Factual/Conceptual: user wants to KNOW or UNDERSTAND something
-  (e.g. "binary of 99", "how does TCP work", "explain Big-O")
-  → Enhance as a QUESTION that asks for a clear, step-by-step explanation.
-  → Use the TYPE A output format below.
-  → DO NOT turn it into a coding task.
-
-TYPE B — Implementation: user wants CODE or a SOLUTION BUILT
-  (e.g. "write a function to...", "implement...", "code a...")
-  → Enhance as a CODING SPEC with I/O types, constraints, edge cases.
-  → Use the TYPE B output format below.
-  → DO NOT write actual code.
-
-━━━ TYPE A FORMAT (Factual / Conceptual) ━━━
-
-### Question
-[The precise question the AI must answer — phrased as a question]
-
-### What the Answer Must Cover
-- Step-by-step process: [what steps to show]
-- Worked example: show [specific input] → each intermediate step → final output
-- Edge cases to address: [list edge cases relevant to the topic]
-- Format: [e.g., numbered steps, table of steps, plain prose]
-
-━━━ TYPE B FORMAT (Implementation / Coding) ━━━
-
-### Task
-[One imperative sentence: "Implement...", "Write a function that..."]
-
-### Input & Output
-- Input: [type, range, edge cases]
-- Output: [type, format, edge case returns]
-
-### Requirements
-- Language & version: [e.g., Python 3.10+]
-- Must include: [e.g., two approaches, type hints, docstring]
-- Must NOT use: [forbidden built-ins or libraries]
-
-### Complexity
-- Time: [target] | Space: [target]`,
-
-    concise: `${MASTER_SYSTEM_PROMPT}
-
-ACTIVE_ROLE: Concise
-
-Compress the user's input into a short, precise, action-first prompt under 60 words.
-Remove all filler. Start with a verb. State the most critical constraint inline.
-
-DO NOT answer the user's request. Write a compact prompt that will make another AI answer it.
-
-OUTPUT — write the enhanced prompt in this format:
-
-**Prompt:** [The compressed, verb-first instruction in ≤60 words]
-
-**Output format:** [Exactly what the receiving AI should return — e.g., "Python function returning str", "JSON"]`
 };
 
 // ── Listen for Messages from Content Script ───────────
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'enhance') {
         console.log('[Prompt Enhancer BG] Received enhance request:', message.prompt.substring(0, 50) + '...');
-        handleEnhance(message.prompt)
+        handleEnhance(message.prompt, message.context)
             .then(enhanced => {
                 console.log('[Prompt Enhancer BG] Enhancement successful');
                 sendResponse({ success: true, enhanced });
@@ -191,7 +98,7 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 // ── Enhancement Handler ───────────────────────────────
-async function handleEnhance(promptText) {
+async function handleEnhance(promptText, conversationContext) {
     const settings = await chrome.storage.sync.get(['apiKey', 'style']);
 
     const apiKey = settings.apiKey;
@@ -201,13 +108,29 @@ async function handleEnhance(promptText) {
         throw new Error('No API key configured. Open extension settings to add one.');
     }
 
-    const systemPrompt = STYLE_PROMPTS[style] || STYLE_PROMPTS.professional;
-    return await callOpenRouter(apiKey, systemPrompt, promptText);
+    const systemPrompt = STYLE_PROMPTS[style] || STYLE_PROMPTS.technical;
+    return await callOpenRouter(apiKey, systemPrompt, promptText, conversationContext);
 }
 
 // ── OpenRouter API Call (Mistral ministral-3b) ────────
-async function callOpenRouter(apiKey, systemPrompt, userPrompt, retryCount = 0) {
+async function callOpenRouter(apiKey, systemPrompt, userPrompt, conversationContext, retryCount = 0) {
     const url = 'https://openrouter.ai/api/v1/chat/completions';
+
+    // Build messages array — inject conversation context if available
+    const messages = [{ role: 'system', content: systemPrompt }];
+
+    if (conversationContext && conversationContext.trim()) {
+        messages.push({
+            role: 'user',
+            content: `Here is the recent conversation context from the page:\n\n${conversationContext}\n\nNow rewrite this new prompt with that context in mind:`
+        });
+        messages.push({
+            role: 'assistant',
+            content: 'Understood. I will use the conversation context to inform the rewrite.'
+        });
+    }
+
+    messages.push({ role: 'user', content: userPrompt });
 
     const response = await fetch(url, {
         method: 'POST',
@@ -219,10 +142,7 @@ async function callOpenRouter(apiKey, systemPrompt, userPrompt, retryCount = 0) 
         },
         body: JSON.stringify({
             model: 'mistralai/ministral-3b-2512',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-            ],
+            messages,
             temperature: 0.7,
             max_tokens: 1024
         })
@@ -232,7 +152,7 @@ async function callOpenRouter(apiKey, systemPrompt, userPrompt, retryCount = 0) 
     if (response.status === 429 && retryCount < 1) {
         console.log('[Prompt Enhancer BG] Rate limited, retrying in 2s...');
         await new Promise(r => setTimeout(r, 2000));
-        return callOpenRouter(apiKey, systemPrompt, userPrompt, retryCount + 1);
+        return callOpenRouter(apiKey, systemPrompt, userPrompt, conversationContext, retryCount + 1);
     }
 
     if (!response.ok) {
